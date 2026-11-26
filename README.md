@@ -78,3 +78,7 @@ To demonstrate intelligent microgrid monitoring, control, and resilience through
 ## Project
 
 Developed as part of the Green Pulse Hackathon.
+
+## Live Demo: https://gridguard-ai-2n4m.onrender.com
+
+## Source Code: https://github.com/V-M-Codes/GridGuard-AI
