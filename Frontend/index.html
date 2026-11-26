@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GridGuard AI – Intelligent Microgrid Control Center (Light Mode)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<style>
+@layer base {
+  html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+  body { margin: 0; padding: 0; }
+  body { overscroll-behavior: none; }
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+</style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        primary: "#059669",
+        "primary-hover": "#047857",
+        secondary: "#0284c7",
+        tertiary: "#d97706",
+        background: "#f8fafc",
+        surface: "#ffffff",
+        "surface-subtle": "#f1f5f9",
+        border: "#e2e8f0"
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace']
+      }
+    }
+  }
+};
+</script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased selection:bg-emerald-100 selection:text-emerald-900">
+
+<!-- TOP HEADER -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs h-16">
+  <div class="h-full w-full px-6 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-8">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-sm font-bold text-xl">
+          <span class="material-symbols-outlined text-[22px]">grid_guides</span>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-2">
+            <span class="text-base font-bold tracking-tight text-slate-900 uppercase">GridGuard AI</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">CORE</span>
+          </div>
+          <span class="text-[11px] font-mono text-slate-500 uppercase">Microgrid Autonomous Command</span>
+        </div>
+      </div>
+      <nav class="hidden xl:flex items-center gap-1 text-sm font-medium">
+        <a class="px-3 py-1.5 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200 font-semibold" href="#dashboard">Dashboard</a>
+        <a class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors" href="#energy-management">Energy Management</a>
+        <a class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors" href="#outage-simulation">Outage Simulation</a>
+        <a class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors" href="#load-priority">Load Priority</a>
+        <a class="px-3 py-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors" href="#analytics">Analytics</a>
+      </nav>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200" id="header-grid-badge">
+        <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" id="header-grid-dot"></span>
+        <span class="font-mono text-xs text-emerald-800 uppercase font-bold" id="header-grid-text">Grid Connected</span>
+      </div>
+      <div class="hidden lg:flex items-center gap-1.5 font-mono text-xs text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+        <span class="material-symbols-outlined text-[15px] text-sky-600">schedule</span>
+        <span class="text-slate-900 font-semibold">14:28:09 UTC</span>
+      </div>
+      <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 transition-colors shadow-xs text-xs font-semibold uppercase tracking-wider" onclick="simulateOutage()" type="button">
+        <span class="material-symbols-outlined text-[16px] text-sky-600">bolt</span>
+        <span>Sim Trigger</span>
+      </button>
+      <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-semibold shadow-xs">
+        <span class="material-symbols-outlined text-[18px]">person</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- LEFT SIDEBAR -->
+<aside class="fixed left-0 top-16 bottom-0 w-60 bg-white border-r border-slate-200 z-40 flex flex-col py-4 shadow-xs">
+  <div class="px-5 mb-3">
+    <span class="font-mono text-[11px] uppercase text-slate-400 font-bold tracking-wider">Grid Subsystems</span>
+  </div>
+  <nav class="flex-1 px-3 space-y-1 text-sm font-medium">
+    <a class="flex items-center justify-between px-3 py-2 bg-emerald-50 text-emerald-800 rounded-lg border border-emerald-200 font-semibold" href="#dashboard">
+      <div class="flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-[19px] text-emerald-600">grid_view</span>
+        <span>Dashboard</span>
+      </div>
+      <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold">LIVE</span>
+    </a>
+    <a class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors" href="#energy-management">
+      <div class="flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-[19px] text-slate-400">solar_power</span>
+        <span>Energy Mgmt</span>
+      </div>
+      <span class="font-mono text-xs text-slate-500">4.2MW</span>
+    </a>
+    <a class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors" href="#outage-simulation">
+      <div class="flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-[19px] text-slate-400">emergency_home</span>
+        <span>Outage Sim</span>
+      </div>
+      <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-bold">READY</span>
+    </a>
+    <a class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors" href="#load-priority">
+      <div class="flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-[19px] text-slate-400">tune</span>
+        <span>Load Priority</span>
+      </div>
+      <span class="font-mono text-xs text-sky-600 font-bold">TIER 1</span>
+    </a>
+    <a class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-lg transition-colors" href="#analytics">
+      <div class="flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-[19px] text-slate-400">monitoring</span>
+        <span>Analytics</span>
+      </div>
+      <span class="font-mono text-xs text-emerald-700 font-bold">99.98%</span>
+    </a>
+  </nav>
+  <div class="px-4 pt-4">
+    <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-col gap-1.5 text-xs">
+      <div class="flex items-center justify-between">
+        <span class="font-mono text-[11px] uppercase text-slate-500 font-semibold">Islanded State</span>
+        <span class="font-mono text-[11px] text-emerald-700 font-bold" id="sidebar-island-state">STANDBY</span>
+      </div>
+      <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+        <div class="bg-emerald-500 h-full w-full" id="sidebar-island-bar"></div>
+      </div>
+      <span class="font-mono text-[10px] text-slate-500">Failover Latency: &lt;14ms</span>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="pl-60 pt-16 min-h-screen bg-slate-50">
+  <main class="p-6 max-w-[1680px] mx-auto flex flex-col gap-6">
+
+    <!-- HERO / COMMAND COCKPIT -->
+    <section id="dashboard" class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col gap-4">
+      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200" id="grid-operating-badge">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse shrink-0" id="grid-status-ping"></span>
+            <span class="font-mono text-xs font-bold text-emerald-800 uppercase tracking-wide" id="operating-mode-text">
+              OPERATING: NORMAL GRID CONNECTED (100% STABLE)
+            </span>
+          </div>
+          <div class="hidden sm:flex items-center gap-3 font-mono text-xs text-slate-500">
+            <span>FREQ: <strong class="text-slate-800" id="tel-freq">60.02 Hz</strong></span>
+            <span class="text-slate-300">/</span>
+            <span>BUS VOLT: <strong class="text-slate-800" id="tel-volt">480.1 V</strong></span>
+            <span class="text-slate-300">/</span>
+            <span>PF: <strong class="text-slate-800">0.98 LAG</strong></span>
+            <span class="text-slate-300">/</span>
+            <span>THD: <strong class="text-emerald-700">1.4%</strong></span>
+          </div>
+        </div>
+
+        <!-- Weather control buttons -->
+        <div id="energy-management" class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-semibold">
+          <span class="font-mono text-slate-500 px-2 uppercase text-[11px]">Solar Sim</span>
+          <button class="weather-btn active flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white text-emerald-800 border border-slate-200 shadow-xs" id="btn-weather-sunny" onclick="setWeather('sunny')">
+            <span class="material-symbols-outlined text-[15px] text-amber-500">wb_sunny</span><span>Sunny (100%)</span>
+          </button>
+          <button class="weather-btn flex items-center gap-1.5 px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition-colors" id="btn-weather-cloudy" onclick="setWeather('cloudy')">
+            <span class="material-symbols-outlined text-[15px]">cloud</span><span>Cloudy (42%)</span>
+          </button>
+          <button class="weather-btn flex items-center gap-1.5 px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition-colors" id="btn-weather-stormy" onclick="setWeather('stormy')">
+            <span class="material-symbols-outlined text-[15px]">thunderstorm</span><span>Stormy (12%)</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-5">
+        <div class="max-w-3xl">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="font-mono text-xs text-sky-700 uppercase font-bold tracking-wider">Autonomous Microgrid Telemetry Engine</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+            <span class="font-mono text-[11px] text-slate-500 uppercase">IEEE 1547.4 Certified</span>
+          </div>
+          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Microgrid Islanding &amp; Critical Emergency Load Dispatch</h1>
+          <p class="text-sm text-slate-600 mt-1 leading-relaxed">
+            Dynamic sub-cycle islanding protection system with automated load-shed hierarchy: when Battery SoC drops below the <strong class="text-slate-900">35% contingency threshold</strong>, Tier 2 disconnects immediately, reserving 100% of available energy for Tier 1 life-critical medical infrastructure.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm shadow-sm transition-all" id="btn-trigger-outage" onclick="simulateOutage()">
+            <span class="material-symbols-outlined text-[18px]">bolt</span>
+            <span>SIMULATE POWER OUTAGE</span>
+          </button>
+          <button class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm transition-all" id="btn-restore-grid" onclick="restoreGrid()">
+            <span class="material-symbols-outlined text-[18px]">power</span>
+            <span>RESTORE GRID</span>
+          </button>
+          <button class="flex items-center gap-1.5 px-3 py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-sm font-medium transition-colors" onclick="resetSimulation()" title="Reset all telemetry parameters">
+            <span class="material-symbols-outlined text-[17px]">replay</span>
+            <span>RESET</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 PRIMARY KPI METRIC CARDS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Solar Card -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-mono text-xs text-slate-500 uppercase font-semibold">PV Array Generation</span>
+          <span class="px-2 py-0.5 rounded-full font-mono text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold" id="kpi-solar-badge">PEAK IRRADIANCE</span>
+        </div>
+        <div class="flex items-baseline gap-2 my-2">
+          <span class="font-mono text-3xl font-bold text-emerald-700" id="kpi-solar-val">482.4</span>
+          <span class="font-mono text-sm text-slate-500 font-semibold">kW</span>
+          <span class="ml-auto font-mono text-xs text-emerald-700 flex items-center font-bold" id="kpi-solar-trend">
+            <span class="material-symbols-outlined text-[14px]">arrow_upward</span>12.8%
+          </span>
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-500 mb-2">
+          <span>1,200 Monocrystalline Panels</span>
+          <span class="font-semibold text-slate-700" id="kpi-irradiance">980 W/m²</span>
+        </div>
+        <div class="w-full h-8">
+          <svg class="w-full h-full text-emerald-600" fill="none" preserveAspectRatio="none" viewBox="0 0 100 24">
+            <path d="M0,20 Q10,18 20,16 T40,10 T60,5 T80,3 T100,2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+            <path d="M0,20 Q10,18 20,16 T40,10 T60,5 T80,3 T100,2 L100,24 L0,24 Z" fill="currentColor" fill-opacity="0.12"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Microgrid Load Card -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-mono text-xs text-slate-500 uppercase font-semibold">Total Microgrid Load</span>
+          <span class="px-2 py-0.5 rounded-full font-mono text-[10px] bg-sky-50 text-sky-800 border border-sky-200 font-bold" id="kpi-demand-badge">ALL LOADS ONLINE</span>
+        </div>
+        <div class="flex items-baseline gap-2 my-2">
+          <span class="font-mono text-3xl font-bold text-sky-700" id="kpi-demand-val">345.8</span>
+          <span class="font-mono text-sm text-slate-500 font-semibold">kW</span>
+          <span class="ml-auto font-mono text-xs text-slate-500 font-bold" id="kpi-shed-status">TIER 1/2/3 ON</span>
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-500 mb-2">
+          <span>Base: 112kW | Comm: 142kW</span>
+          <span class="font-semibold text-slate-700" id="kpi-tier3-subtext">Sheddable: 90.8 kW</span>
+        </div>
+        <div class="w-full h-8">
+          <svg class="w-full h-full text-sky-600" fill="none" preserveAspectRatio="none" viewBox="0 0 100 24">
+            <path d="M0,12 C20,15 35,9 50,11 C65,13 80,8 100,10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+            <path d="M0,12 C20,15 35,9 50,11 C65,13 80,8 100,10 L100,24 L0,24 Z" fill="currentColor" fill-opacity="0.1"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- BESS SoC Card -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-mono text-xs text-slate-500 uppercase font-semibold">BESS Capacity (SoC)</span>
+          <span class="px-2 py-0.5 rounded-full font-mono text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold" id="kpi-battery-status">CHARGING +85.2kW</span>
+        </div>
+        <div class="flex items-baseline gap-2 my-2">
+          <span class="font-mono text-3xl font-bold text-slate-900" id="kpi-battery-val">88.5</span>
+          <span class="font-mono text-sm text-slate-500 font-semibold">%</span>
+          <span class="ml-auto font-mono text-xs text-slate-600 font-semibold"><span id="kpi-battery-kwh">1416</span> / 1,600 kWh</span>
+        </div>
+        <div class="relative w-full bg-slate-100 border border-slate-200 h-2.5 rounded-full overflow-hidden my-2">
+          <div class="h-full bg-emerald-500 transition-all duration-500 rounded-full" id="bess-progress-bar" style="width: 88.5%;"></div>
+          <div class="absolute top-0 bottom-0 left-[35%] w-0.5 bg-amber-500" title="Tier-2 Cutoff (Strict 35%)"></div>
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-600">
+          <span class="text-amber-700 font-bold">Tier-2 Shed Floor: 35.0% SoC</span>
+          <span class="text-emerald-700 font-bold">Health: 99.4%</span>
+        </div>
+      </div>
+
+      <!-- Utility Grid Card -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all" id="kpi-grid-card">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-mono text-xs text-slate-500 uppercase font-semibold">Substation 14-B</span>
+          <span class="flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold" id="kpi-grid-beacon">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span><span>ONLINE</span>
+          </span>
+        </div>
+        <div class="flex items-baseline gap-2 my-2">
+          <span class="font-mono text-3xl font-bold text-emerald-700 tracking-tight" id="kpi-grid-state">CONNECTED</span>
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-600 mb-2">
+          <span id="kpi-grid-flow-label">Grid Import/Export:</span>
+          <span class="font-mono text-xs text-emerald-700 font-bold" id="kpi-grid-kw">Export 51.4 kW</span>
+        </div>
+        <div class="p-1.5 rounded bg-slate-50 border border-slate-200 font-mono text-[10px] text-slate-600 flex items-center justify-between font-semibold">
+          <span>INTERTIE BUS: 13.8 kV</span>
+          <span class="text-emerald-700 font-bold" id="feeder-breaker-state">CB-101 CLOSED</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ENERGY FLOW TOPOLOGY SCHEMATIC -->
+    <section class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col gap-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-xs text-sky-700 uppercase font-bold tracking-wider">Single-Line Vector Topology</span>
+            <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 font-bold">ACTIVE POWER ROUTING</span>
+          </div>
+          <h2 class="text-lg font-bold text-slate-900 mt-0.5">Microgrid Dynamic Power Flow Bus</h2>
+        </div>
+        <div class="flex items-center gap-4 font-mono text-xs text-slate-600 font-medium">
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span><span>Solar Generation</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-sky-500"></span><span>Loads &amp; Utility</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-amber-500"></span><span>BESS Storage</span></div>
+        </div>
+      </div>
+
+      <div class="relative w-full bg-slate-50 border border-slate-200 p-6 rounded-xl overflow-hidden min-h-[300px] flex items-center justify-center">
+        <svg class="absolute inset-0 w-full h-full pointer-events-none" id="power-flow-svg" preserveAspectRatio="none" viewBox="0 0 1000 360">
+          <path class="opacity-90" d="M 220 180 L 500 180" fill="none" id="path-solar" stroke="#059669" stroke-dasharray="6 6" stroke-width="3"></path>
+          <path class="opacity-90" d="M 500 70 L 500 180" fill="none" id="path-grid" stroke="#0284c7" stroke-dasharray="6 6" stroke-width="3"></path>
+          <path class="opacity-90" d="M 500 180 L 500 290" fill="none" id="path-bess" stroke="#d97706" stroke-dasharray="6 6" stroke-width="3"></path>
+          <path class="opacity-90" d="M 500 180 L 780 180" fill="none" id="path-demand" stroke="#0284c7" stroke-dasharray="8 6" stroke-width="4"></path>
+          <circle cx="500" cy="180" fill="#ffffff" r="14" stroke="#059669" stroke-width="2.5"></circle>
+          <circle class="animate-ping" cx="500" cy="180" fill="#059669" r="5"></circle>
+        </svg>
+
+        <div class="relative w-full h-full min-h-[260px] flex flex-col justify-between z-10 pointer-events-auto">
+          <!-- Main Grid Node (Top) -->
+          <div class="flex justify-center items-center w-full">
+            <div class="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-sm" id="node-grid">
+              <div class="w-10 h-10 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-700">
+                <span class="material-symbols-outlined text-[22px]">power</span>
+              </div>
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-slate-900">Main Utility Grid</span>
+                  <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold" id="node-grid-pill">INTERTIED</span>
+                </div>
+                <div class="flex items-center gap-2 font-mono text-xs">
+                  <span class="text-slate-500">Feeder 14-B (230kV)</span>
+                  <span class="text-sky-700 font-bold" id="node-grid-power">Net Export: 51.4 kW</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle Row: Solar Array (Left) & Community Feeders (Right) -->
+          <div class="flex flex-col md:flex-row items-center justify-between gap-6 w-full px-4 lg:px-12 my-2">
+            <!-- Solar Node -->
+            <div class="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-sm" id="node-solar">
+              <div class="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
+                <span class="material-symbols-outlined text-[22px]">solar_power</span>
+              </div>
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-slate-900">Solar Array</span>
+                  <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">100% CAP</span>
+                </div>
+                <div class="flex items-center gap-2 font-mono text-xs">
+                  <span class="text-slate-500">Dual Inverter Strings</span>
+                  <span class="text-emerald-700 font-bold" id="node-solar-power">482.4 kW</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sync Bus Center Badge -->
+            <div class="hidden lg:flex flex-col items-center bg-white border border-slate-200 px-3 py-1 rounded-full shadow-xs">
+              <span class="font-mono text-[11px] text-emerald-700 uppercase font-bold">Sync PCC Bus 480V</span>
+              <span class="font-mono text-[10px] text-slate-500">&lt; 14ms Island Latency</span>
+            </div>
+
+            <!-- Community Feeders Node -->
+            <div class="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-sm" id="node-demand">
+              <div class="w-10 h-10 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-700">
+                <span class="material-symbols-outlined text-[22px]">hub</span>
+              </div>
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-slate-900">Community Feeders</span>
+                  <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 font-bold">10 APPLIANCES</span>
+                </div>
+                <div class="flex items-center gap-2 font-mono text-xs">
+                  <span class="text-slate-500">Total Microgrid Load:</span>
+                  <span class="text-sky-700 font-bold" id="node-load-power">345.8 kW</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BESS Storage Node (Bottom) -->
+          <div class="flex justify-center items-center w-full">
+            <div class="flex items-center gap-3 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-sm" id="node-bess">
+              <div class="w-10 h-10 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
+                <span class="material-symbols-outlined text-[22px]">battery_charging_full</span>
+              </div>
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-slate-900">BESS Storage</span>
+                  <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-bold">1.6 MWh LiFePO4</span>
+                </div>
+                <div class="flex items-center gap-2 font-mono text-xs">
+                  <span class="text-slate-500">Bi-directional PCS</span>
+                  <span class="text-emerald-700 font-bold" id="node-bess-power">Charging: +85.2 kW</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inverter & Relay Sub-Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+          <div class="font-mono text-[11px] text-slate-500 uppercase font-semibold">Inverter 1 (North)</div>
+          <div class="font-mono text-base text-slate-900 font-bold mt-0.5" id="sub-inv1">242.2 kW</div>
+          <div class="font-mono text-[11px] text-emerald-700 font-semibold">Efficiency: 98.7%</div>
+        </div>
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+          <div class="font-mono text-[11px] text-slate-500 uppercase font-semibold">Inverter 2 (South)</div>
+          <div class="font-mono text-base text-slate-900 font-bold mt-0.5" id="sub-inv2">240.2 kW</div>
+          <div class="font-mono text-[11px] text-emerald-700 font-semibold">Efficiency: 98.6%</div>
+        </div>
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+          <div class="font-mono text-[11px] text-slate-500 uppercase font-semibold">Static Transfer Switch</div>
+          <div class="font-mono text-base text-emerald-700 font-bold mt-0.5">SYNCHRONIZED</div>
+          <div class="font-mono text-[11px] text-slate-500">Transfer Trip: 16ms</div>
+        </div>
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+          <div class="font-mono text-[11px] text-slate-500 uppercase font-semibold">Ground Isolation Fault</div>
+          <div class="font-mono text-base text-slate-900 font-bold mt-0.5">0.02 mA</div>
+          <div class="font-mono text-[11px] text-emerald-700 font-semibold">Nominal Safe</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOAD PRIORITY & SHEDDING HIERARCHY -->
+    <section id="load-priority" class="flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="font-mono text-xs text-emerald-700 uppercase font-bold tracking-wider">Tri-Tier Dispatch Matrix</span>
+          <h2 class="text-xl font-bold text-slate-900">Load Priority &amp; Shedding Hierarchy</h2>
+        </div>
+        <div class="text-right hidden sm:block">
+          <span class="font-mono text-xs text-slate-500 uppercase font-semibold">Automated Rule Engine</span>
+          <p class="font-mono text-xs text-emerald-700 font-bold">BESS SoC &lt; 35% → Shed Tier 2 (Reserve for Tier 1) | Grid Lost → Shed Tier 3 (Zero kW)</p>
+        </div>
+      </div>
+
+      <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg border-l-4 border-l-emerald-600 flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
+        <span class="text-sm text-slate-700">
+          <strong class="text-emerald-800 uppercase font-bold tracking-wider">Contingency Rule:</strong>
+          "When Battery SoC drops below <strong>35% threshold</strong>, disconnect Tier 2 and reserve all available energy for Tier 1."
+        </span>
+        <span class="font-mono text-xs px-2.5 py-1 rounded bg-amber-50 text-amber-800 border border-amber-200 uppercase font-bold shrink-0">
+          35% SoC CONTINGENCY FLOOR
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- TIER 1 -->
+        <div class="p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between border-t-4 border-t-emerald-600">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold uppercase">TIER 1 • CRITICAL LOADS (HIGHEST PRIORITY)</span>
+                <h3 class="text-base font-bold text-slate-900 mt-1">Healthcare &amp; Emergency Comms</h3>
+              </div>
+              <div class="text-right">
+                <span class="font-mono text-lg font-bold text-emerald-700" id="tier1-kw">112.5 kW</span>
+                <span class="block font-mono text-[10px] text-slate-500 font-semibold">DRAW</span>
+              </div>
+            </div>
+
+            <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg mb-4">
+              <div class="flex items-center gap-1.5 text-emerald-800 text-xs font-bold mb-1">
+                <span class="material-symbols-outlined text-[16px] text-emerald-600">verified_user</span>
+                <span>UNCONDITIONALLY PROTECTED 24/7 (ZERO INTERRUPTION)</span>
+              </div>
+              <p class="text-xs text-slate-600">Highest priority, guaranteed uninterrupted power path. Direct hard-wired connection to BESS emergency inverter bus.</p>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                  <span class="text-xs text-slate-800 font-medium">Vaccine Refrigerator Banks (Clinic)</span>
+                </div>
+                <span class="font-mono text-xs text-emerald-700 font-bold">22.0 kW</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                  <span class="text-xs text-slate-800 font-medium">Intensive Care Units (ICU) &amp; Monitors</span>
+                </div>
+                <span class="font-mono text-xs text-emerald-700 font-bold">54.5 kW</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                  <span class="text-xs text-slate-800 font-medium">Pathway &amp; Trauma Surgical Lights</span>
+                </div>
+                <span class="font-mono text-xs text-emerald-700 font-bold">14.0 kW</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                  <span class="text-xs text-slate-800 font-medium">Satcom &amp; VHF Emergency Radio Hub</span>
+                </div>
+                <span class="font-mono text-xs text-emerald-700 font-bold">22.0 kW</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 flex items-center justify-between font-mono text-[11px] text-slate-500 border-t border-slate-100">
+            <span>Priority: Highest (Essential)</span>
+            <span class="text-emerald-700 font-bold">BREAKER CB-T1 CLOSED</span>
+          </div>
+        </div>
+
+        <!-- TIER 2 -->
+        <div class="p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between transition-all duration-300 border-t-4 border-t-sky-600" id="tier2-card">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 font-bold uppercase" id="tier2-badge">TIER 2 • COMMUNITY PRIORITY</span>
+                <h3 class="text-base font-bold text-slate-900 mt-1">Shelters &amp; Clean Water</h3>
+              </div>
+              <div class="text-right">
+                <span class="font-mono text-lg font-bold text-sky-700" id="tier2-kw">142.5 kW</span>
+                <span class="block font-mono text-[10px] text-slate-500 font-semibold">DRAW</span>
+              </div>
+            </div>
+
+            <div class="p-3 bg-sky-50/70 border border-sky-200 rounded-lg mb-4" id="tier2-callout">
+              <div class="flex items-center justify-between text-sky-800 text-xs font-bold mb-1">
+                <span class="flex items-center gap-1.5" id="tier2-status-title">
+                  <span class="material-symbols-outlined text-[16px] text-sky-600">water_drop</span>
+                  <span>CONTINGENCY RULE: ACTIVE (BESS &gt; 35%)</span>
+                </span>
+                <span class="font-mono text-xs text-sky-800 font-bold" id="tier2-threshold-ping">OK</span>
+              </div>
+              <p class="text-xs text-slate-600" id="tier2-rule-desc">
+                Receives power ONLY when sufficient energy is available. Automatically disconnects and sheds immediately when battery SoC falls below 35%.
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-opacity" id="t2-item-1">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-sky-600" id="t2-dot-1"></span>
+                  <span class="text-xs text-slate-800 font-medium">Municipal Water Treatment &amp; Pumps</span>
+                </div>
+                <span class="font-mono text-xs text-sky-700 font-bold" id="t2-kw-1">58.0 kW</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-opacity" id="t2-item-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-sky-600" id="t2-dot-2"></span>
+                  <span class="text-xs text-slate-800 font-medium">Community Center Cooling &amp; Heat Shelter</span>
+                </div>
+                <span class="font-mono text-xs text-sky-700 font-bold" id="t2-kw-2">52.0 kW</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-opacity" id="t2-item-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-sky-600" id="t2-dot-3"></span>
+                  <span class="text-xs text-slate-800 font-medium">Public Emergency Device Charging Bank</span>
+                </div>
+                <span class="font-mono text-xs text-sky-700 font-bold" id="t2-kw-3">32.5 kW</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 flex items-center justify-between font-mono text-[11px] text-slate-500 border-t border-slate-100">
+            <span id="tier2-soc-eval">Current SoC: 88.5% (Safe &gt; 35%)</span>
+            <span class="text-sky-700 font-bold" id="tier2-breaker">BREAKER CB-T2 CLOSED</span>
+          </div>
+        </div>
+
+        <!-- TIER 3 -->
+        <div class="p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between transition-all duration-300 border-t-4 border-t-slate-400" id="tier3-card">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300 font-bold uppercase" id="tier3-badge">TIER 3 • NON-CRITICAL</span>
+                <h3 class="text-base font-bold text-slate-900 mt-1">Civic &amp; Commercial</h3>
+              </div>
+              <div class="text-right">
+                <span class="font-mono text-lg font-bold text-slate-800" id="tier3-kw">90.8 kW</span>
+                <span class="block font-mono text-[10px] text-slate-500 font-semibold">DRAW</span>
+              </div>
+            </div>
+
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg mb-4" id="tier3-callout">
+              <div class="flex items-center gap-1.5 text-slate-700 text-xs font-semibold mb-1" id="tier3-banner-header">
+                <span class="material-symbols-outlined text-[16px] text-slate-500">power_off</span>
+                <span class="text-slate-800 font-bold" id="tier3-status-label">ENERGIZED (GRID CONNECTED)</span>
+              </div>
+              <p class="text-xs text-slate-600" id="tier3-desc">
+                During a grid outage (islanded operation), Tier 3 appliances MUST be immediately and completely disconnected, receiving <strong class="text-slate-900">ZERO power (0.0 kW)</strong> throughout islanded mode.
+              </p>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-all" id="t3-item-1">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-slate-400" id="t3-dot-1"></span>
+                  <span class="text-xs text-slate-800 font-medium">Civic Decorative &amp; Monument Lighting</span>
+                </div>
+                <span class="font-mono text-xs text-slate-700 font-bold" id="t3-kw-1">18.2 kW</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-all" id="t3-item-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-slate-400" id="t3-dot-2"></span>
+                  <span class="text-xs text-slate-800 font-medium">Unoccupied Municipal HVAC Chillers</span>
+                </div>
+                <span class="font-mono text-xs text-slate-700 font-bold" id="t3-kw-2">38.6 kW</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-all" id="t3-item-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-slate-400" id="t3-dot-3"></span>
+                  <span class="text-xs text-slate-800 font-medium">Commercial EV Plaza Chargers (1-4)</span>
+                </div>
+                <span class="font-mono text-xs text-slate-700 font-bold" id="t3-kw-3">24.0 kW</span>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-all" id="t3-item-4">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-slate-400" id="t3-dot-4"></span>
+                  <span class="text-xs text-slate-800 font-medium">Community Laundromat &amp; Dryer Bank</span>
+                </div>
+                <span class="font-mono text-xs text-slate-700 font-bold" id="t3-kw-4">10.0 kW</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 flex items-center justify-between font-mono text-[11px] text-slate-500 border-t border-slate-100">
+            <span>Priority: Lowest (Non-Critical)</span>
+            <span class="text-slate-800 font-bold" id="tier3-breaker">BREAKER CB-T3 CLOSED</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DRILL SCHEDULER & BACKUP GENERATOR -->
+    <section class="grid grid-cols-1 xl:grid-cols-12 gap-4">
+      <!-- Drill Scheduler (7 cols) -->
+      <div class="xl:col-span-7 p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+        <div>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs text-sky-700 uppercase font-bold tracking-wider">Resilience Protocol Automation</span>
+                <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">ISO 22301 CERTIFIED</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-0.5">Outage Drill Scheduler</h3>
+            </div>
+            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200">
+              <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+              <div class="font-mono text-xs">
+                <span class="text-slate-500">LAST DRILL:</span>
+                <span class="text-emerald-700 font-bold ml-1">PASSED</span>
+                <span class="text-slate-400 text-[11px]">(12ms trip)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3 bg-sky-50/60 rounded-lg mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-sky-200">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700 shrink-0">
+                <span class="material-symbols-outlined text-[20px]">event_upcoming</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-mono text-[11px] text-sky-800 uppercase font-bold">Next Scheduled Drill</span>
+                <span class="text-xs text-slate-800 font-medium">Thursday 02:00 UTC - ISO 22301 Black-Start Verification</span>
+              </div>
+            </div>
+            <span class="font-mono text-xs px-2.5 py-1 rounded bg-white text-emerald-800 border border-slate-200 shadow-xs font-bold self-start sm:self-center">T-48h 31m</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-col gap-1">
+              <label class="font-mono text-[10px] text-slate-500 uppercase font-semibold">Drill Type</label>
+              <div class="text-xs text-slate-900 font-bold flex items-center gap-1">
+                <span class="material-symbols-outlined text-[15px] text-emerald-600">bolt</span>
+                <span>Sub-Cycle Islanding</span>
+              </div>
+              <span class="font-mono text-[10px] text-slate-500">IEEE 1547.4 Sequence</span>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-col gap-1">
+              <label class="font-mono text-[10px] text-slate-500 uppercase font-semibold">Drill Duration</label>
+              <div class="flex items-center gap-1 mt-0.5">
+                <button type="button" class="duration-btn px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600 hover:text-slate-900 font-mono text-xs font-medium" onclick="selectDuration(this)">15m</button>
+                <button type="button" class="duration-btn px-2 py-0.5 rounded bg-emerald-600 text-white font-mono text-xs font-bold shadow-xs" onclick="selectDuration(this)">30m</button>
+                <button type="button" class="duration-btn px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600 hover:text-slate-900 font-mono text-xs font-medium" onclick="selectDuration(this)">1h</button>
+              </div>
+              <span class="font-mono text-[10px] text-emerald-700 font-semibold">Standard Window</span>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-col gap-1">
+              <label class="font-mono text-[10px] text-slate-500 uppercase font-semibold">Target Scope</label>
+              <div class="text-xs text-sky-700 font-bold flex items-center gap-1">
+                <span class="material-symbols-outlined text-[15px]">domain</span>
+                <span>Full Facility Intertie</span>
+              </div>
+              <span class="font-mono text-[10px] text-slate-500">Feeder 14-B Isolation</span>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg mb-4 flex flex-col gap-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-[10px] text-slate-500 uppercase font-semibold">Safety Abort Interlocks (Armed)</span>
+              <span class="font-mono text-[10px] text-emerald-700 font-bold flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px]">gpp_good</span>ARMED &amp; VERIFIED
+              </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-xs text-slate-600">
+              <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span><span>Battery SoC Interlock: <strong class="text-slate-900">&ge; 35.0% Required</strong></span></div>
+              <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span><span>Hospital Critical V-Tolerance: <strong class="text-slate-900">&plusmn;1.5% Delta</strong></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
+          <button type="button" class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-800 transition-colors text-xs font-semibold" onclick="appendLog('Resilience drill configuration scheduler opened.', 'normal')">
+            <span class="material-symbols-outlined text-[16px] text-sky-600">calendar_month</span><span>Schedule New Drill</span>
+          </button>
+          <button type="button" class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-800 hover:text-white border border-emerald-200 transition-all text-xs font-bold" onclick="executeManualDrill()">
+            <span class="material-symbols-outlined text-[16px]">play_arrow</span><span>Execute Instant Manual Drill</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Backup Generator Panel (5 cols) -->
+      <div class="xl:col-span-5 p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between" id="genset-card">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs text-amber-700 uppercase font-bold tracking-wider">Emergency Generator Backup</span>
+                <span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-bold">UNIT GS-1</span>
+              </div>
+              <h3 class="text-base font-bold text-slate-900 mt-0.5">500 kW Clean Diesel / Dual-Fuel</h3>
+            </div>
+            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold" id="genset-status-badge">
+              <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" id="genset-status-dot"></span>
+              <span class="font-mono text-xs uppercase" id="genset-status-text">STANDBY (READY)</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-col">
+              <span class="font-mono text-[10px] text-slate-500 uppercase font-semibold">Real-Time Output Power</span>
+              <div class="flex items-baseline gap-1 my-1">
+                <span class="font-mono text-2xl font-bold text-sky-700" id="genset-kw-readout">0.0</span>
+                <span class="font-mono text-xs text-slate-500">kW / 500 kW</span>
+              </div>
+              <span class="font-mono text-[10px] text-slate-500 font-medium" id="genset-load-pct">0% Prime Output</span>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-col">
+              <span class="font-mono text-[10px] text-slate-500 uppercase font-semibold">Generator Availability</span>
+              <div class="flex items-center gap-1.5 my-1">
+                <span class="material-symbols-outlined text-[18px] text-emerald-600">check_circle</span>
+                <span class="font-mono text-base text-emerald-700 font-bold">100% READY</span>
+              </div>
+              <span class="font-mono text-[10px] text-emerald-700 font-semibold">Warm Block Heater Active</span>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg mb-3">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-mono text-[11px] text-slate-600 uppercase flex items-center gap-1 font-semibold">
+                <span class="material-symbols-outlined text-[14px] text-amber-600">local_gas_station</span>
+                Fuel Level (Ultra-Low Sulfur Diesel)
+              </span>
+              <span class="font-mono text-xs text-emerald-700 font-bold" id="genset-fuel-pct">88% (1,420 L)</span>
+            </div>
+            <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-1">
+              <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" id="genset-fuel-bar" style="width: 88%;"></div>
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-600">
+              <span>Run Capacity: ~48h @ 80% Prime Load</span>
+              <span class="text-sky-700 font-semibold">ATS Intertie Armed</span>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 flex items-start gap-2.5 mb-3 border-l-4 border-l-amber-600">
+            <span class="material-symbols-outlined text-[18px] text-amber-700 shrink-0 mt-0.5">electric_meter</span>
+            <div class="flex flex-col">
+              <span class="font-mono text-[11px] text-amber-800 uppercase font-bold">Auto-Start Crank Trigger Logic:</span>
+              <span class="text-xs text-slate-700 mt-0.5">
+                "Auto-starts if <strong>BESS SoC &lt; 35%</strong> during Islanded Mode or upon manual override. ATS-2 sub-second synchronizer armed."
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
+          <button type="button" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors" onclick="testCrankGenset()">
+            <span class="material-symbols-outlined text-[15px] text-sky-600">speed</span>
+            <span id="btn-crank-text">Manual Test Crank (10s)</span>
+          </button>
+          <button type="button" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors" onclick="toggleGensetMode()">
+            <span class="material-symbols-outlined text-[15px] text-amber-600">tune</span>
+            <span id="btn-mode-text">Mode: AUTO</span>
+          </button>
+          <button type="button" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-xs" onclick="toggleEmergencyRunGenset()">
+            <span class="material-symbols-outlined text-[15px]">power_settings_new</span>
+            <span id="btn-emergency-text">Emergency Run</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STRESS SIMULATOR & DECISION STREAM & RUNTIME FORECAST -->
+    <section id="outage-simulation" class="grid grid-cols-1 xl:grid-cols-12 gap-4">
+      <div class="xl:col-span-7 flex flex-col gap-4">
+        <!-- SoC Slider -->
+        <div class="p-5 bg-white border border-slate-200 rounded-xl shadow-xs">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <span class="font-mono text-xs text-amber-700 uppercase font-bold tracking-wider">Dynamic BESS Stress Simulator</span>
+              <h3 class="text-base font-bold text-slate-900">Test Storage Discharge Scenarios</h3>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-mono text-xs font-semibold" onclick="setSoC(90)">90% (Nominal)</button>
+              <button class="px-2.5 py-1 rounded bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-mono text-xs font-bold" onclick="setSoC(32)">32% (Trip T2 &amp; Crank)</button>
+              <button class="px-2.5 py-1 rounded bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-800 font-mono text-xs font-bold" onclick="setSoC(15)">15% (Critical)</button>
+            </div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="flex justify-between items-center font-mono text-xs">
+              <span class="text-slate-600 font-medium">Simulate BESS State of Charge:</span>
+              <span class="text-emerald-700 font-bold text-base" id="soc-slider-val">88.5%</span>
+            </div>
+            <input class="w-full accent-emerald-600 h-2 bg-slate-200 rounded-lg cursor-pointer" id="soc-slider" max="100" min="5" oninput="onSliderChange(this.value)" step="0.5" type="range" value="88.5">
+            <div class="flex justify-between font-mono text-[10px] text-slate-500 px-1 font-semibold">
+              <span class="text-rose-600">0% (Shutdown)</span>
+              <span class="text-amber-700 font-bold">35% (Tier-2 Cutoff / Genset Auto-Crank)</span>
+              <span class="text-emerald-700">100% (Full Reserve)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terminal Log -->
+        <div class="p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex-1 flex flex-col justify-between">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-600 animate-ping"></span>
+              <span class="font-mono text-xs text-slate-600 uppercase font-bold tracking-wider">Autonomous Microgrid Decision Stream</span>
+            </div>
+            <span class="font-mono text-xs text-slate-500 font-semibold">IEC 61850 GOOSE</span>
+          </div>
+          <div class="bg-slate-900 p-3 rounded-lg font-mono text-xs flex flex-col gap-1.5 h-44 overflow-y-auto text-slate-300 shadow-inner" id="log-terminal">
+            <div class="text-slate-400"><span class="text-sky-400">[14:20:00 UTC]</span> Microgrid synced to Substation 14B. Voltage angle delta: 0.12 deg.</div>
+            <div class="text-slate-400"><span class="text-sky-400">[14:22:15 UTC]</span> PV Arrays producing 482.4 kW. BESS absorbs excess 85.2 kW.</div>
+            <div class="text-emerald-400"><span class="text-sky-400">[14:25:30 UTC]</span> Contingency check: Tier 1, 2, and 3 fully energized. Frequency stable at 60.02 Hz.</div>
+            <div class="text-white" id="dynamic-log-entry"><span class="text-sky-400">[14:28:09 UTC]</span> Autonomous AI Agent: Solar generation surplus. Islanding protection in STANDBY. Tier-2 cutoff armed at 35% SoC.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Battery Runtime & AI Advisory (5 cols) -->
+      <div class="xl:col-span-5 flex flex-col gap-4">
+        <div class="p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs text-emerald-800 uppercase font-bold tracking-wider">Battery Runtime Forecast</span>
+            <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">AI ESTIMATION</span>
+          </div>
+          <h3 class="text-base font-bold text-slate-900">Islanded Microgrid Autonomy</h3>
+          <div class="grid grid-cols-2 gap-3 my-1">
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+              <span class="font-mono text-[10px] text-slate-500 uppercase font-semibold">Tier 1 Critical Only</span>
+              <div class="font-mono text-2xl text-emerald-700 font-bold my-1" id="rt-tier1">12.6 hrs</div>
+              <span class="text-xs text-slate-600">Hospital &amp; Comms sustained without solar</span>
+            </div>
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+              <span class="font-mono text-[10px] text-slate-500 uppercase font-semibold">Tier 1 + Tier 2</span>
+              <div class="font-mono text-2xl text-sky-700 font-bold my-1" id="rt-tier2">5.6 hrs</div>
+              <span class="text-xs text-slate-600">Until 35% contingency cutoff is reached</span>
+            </div>
+          </div>
+          <div class="p-3 bg-emerald-50/60 border border-emerald-200 rounded-lg flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[18px]">all_inclusive</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xs font-bold text-slate-900">Continuous Solar Daylight Loop</span>
+              <span class="text-xs text-emerald-800 font-semibold" id="rt-solar-loop">Current solar exceeds total demand by 136 kW. Battery fully sustains indefinitely.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex-1 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <div class="w-6 h-6 rounded bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined text-[16px]">psychology</span>
+              </div>
+              <span class="text-base font-bold text-slate-900">GridGuard AI Dispatch Advisory</span>
+            </div>
+            <p class="text-sm text-slate-600 my-2 leading-relaxed" id="ai-dispatch-text">
+              Solar irradiance at 980 W/m². System connected to utility grid with zero curtailment. Current microgrid generation satisfies 140% of local load. Energy reserves optimal for severe weather readiness.
+            </p>
+          </div>
+          <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between font-mono text-[10px] text-slate-600 mt-2">
+            <span class="font-semibold">DISPATCH POLICY: PEAK SHAVING &amp; 35% CONTINGENCY FLOOR</span>
+            <span class="text-emerald-700 font-bold">CONFIDENCE 99.8%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESILIENCE ANALYTICS & 24H PROFILE -->
+    <section id="analytics" class="flex flex-col gap-4">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+          <span class="font-mono text-xs text-slate-500 uppercase font-semibold">Critical Load Survival</span>
+          <div class="font-mono text-2xl text-emerald-700 font-bold mt-1">&gt; 72.0 hrs</div>
+          <div class="text-xs text-slate-600 mt-0.5">With standard daytime PV cycle</div>
+        </div>
+        <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+          <span class="font-mono text-xs text-slate-500 uppercase font-semibold">Energy Not Served (ENS)</span>
+          <div class="font-mono text-2xl text-emerald-700 font-bold mt-1">0.00 kWh</div>
+          <div class="text-xs text-slate-600 mt-0.5">Zero outage time for Tier 1</div>
+        </div>
+        <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+          <span class="font-mono text-xs text-slate-500 uppercase font-semibold">Solar Self-Sufficiency</span>
+          <div class="font-mono text-2xl text-sky-700 font-bold mt-1" id="metric-sufficiency">139.5%</div>
+          <div class="text-xs text-slate-600 mt-0.5">Community net power exporter</div>
+        </div>
+        <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs">
+          <span class="font-mono text-xs text-slate-500 uppercase font-semibold">Cold-Start Island Latency</span>
+          <div class="font-mono text-2xl text-slate-900 font-bold mt-1">14.2 ms</div>
+          <div class="text-xs text-emerald-700 font-semibold mt-0.5">Within ITIC uninterruptible spec</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- 24h Profile Chart (8 cols) -->
+        <div class="lg:col-span-8 p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <span class="font-mono text-xs text-slate-500 uppercase font-semibold">Diurnal Load Balancing</span>
+              <h3 class="text-base font-bold text-slate-900">24-Hour Solar vs. Microgrid Demand Profile</h3>
+            </div>
+            <div class="flex items-center gap-4 font-mono text-xs font-semibold">
+              <span class="flex items-center gap-1.5 text-emerald-700"><span class="w-3 h-1 rounded bg-emerald-600"></span>Solar PV (kW)</span>
+              <span class="flex items-center gap-1.5 text-sky-700"><span class="w-3 h-1 rounded bg-sky-600"></span>Load Demand (kW)</span>
+              <span class="flex items-center gap-1.5 text-amber-700"><span class="w-3 h-1 rounded bg-amber-500"></span>BESS State</span>
+            </div>
+          </div>
+          <div class="w-full h-52 relative bg-slate-50 border border-slate-200 rounded-lg p-3">
+            <svg class="w-full h-full" fill="none" preserveAspectRatio="none" viewBox="0 0 600 200">
+              <line stroke="#e2e8f0" stroke-dasharray="4 4" stroke-width="1" x1="0" x2="600" y1="50" y2="50"></line>
+              <line stroke="#e2e8f0" stroke-dasharray="4 4" stroke-width="1" x1="0" x2="600" y1="100" y2="100"></line>
+              <line stroke="#e2e8f0" stroke-dasharray="4 4" stroke-width="1" x1="0" x2="600" y1="150" y2="150"></line>
+              <path d="M 0 190 L 120 190 Q 220 180 300 20 Q 380 180 480 190 L 600 190 Z" fill="#059669" fill-opacity="0.12"></path>
+              <path d="M 0 190 L 120 190 Q 220 180 300 20 Q 380 180 480 190 L 600 190" fill="none" stroke="#059669" stroke-width="2.5"></path>
+              <path d="M 0 130 Q 75 140 150 90 T 300 100 T 450 75 T 600 120" fill="none" stroke="#0284c7" stroke-width="2.5"></path>
+              <line stroke="#d97706" stroke-dasharray="2 2" stroke-width="1.5" x1="360" x2="360" y1="0" y2="200"></line>
+              <circle cx="360" cy="55" fill="#d97706" r="4"></circle>
+            </svg>
+            <div class="flex justify-between font-mono text-xs text-slate-500 pt-1 px-1">
+              <span>00:00</span><span>04:00</span><span>08:00</span><span class="text-amber-700 font-bold">12:00 (Peak)</span><span>16:00</span><span>20:00</span><span>23:59</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Demand Partitioning (4 cols) -->
+        <div class="lg:col-span-4 p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+          <div>
+            <span class="font-mono text-xs text-slate-500 uppercase font-semibold">Demand Partitioning</span>
+            <h3 class="text-base font-bold text-slate-900 mb-3">Load Tier Proportion</h3>
+            <div class="w-full h-3.5 rounded-full overflow-hidden flex mb-4 bg-slate-100 border border-slate-200">
+              <div class="bg-emerald-600 h-full transition-all duration-300" id="dist-bar-t1" style="width: 32.5%;" title="Tier 1: 32.5%"></div>
+              <div class="bg-sky-600 h-full transition-all duration-300" id="dist-bar-t2" style="width: 41.2%;" title="Tier 2: 41.2%"></div>
+              <div class="bg-slate-400 h-full transition-all duration-300" id="dist-bar-t3" style="width: 26.3%;" title="Tier 3: 26.3%"></div>
+            </div>
+            <div class="flex flex-col gap-2 text-xs">
+              <div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-200">
+                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-600 shrink-0"></span><span class="text-slate-800 font-semibold">Tier 1 Critical</span></div>
+                <span class="font-mono text-xs text-emerald-700 font-bold" id="dist-val-t1">112.5 kW (32.5%)</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-200">
+                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-sky-600 shrink-0"></span><span class="text-slate-800 font-semibold">Tier 2 Community</span></div>
+                <span class="font-mono text-xs text-sky-700 font-bold" id="dist-val-t2">142.5 kW (41.2%)</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-200">
+                <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0"></span><span class="text-slate-800 font-semibold">Tier 3 Non-Critical</span></div>
+                <span class="font-mono text-xs text-slate-700 font-bold" id="dist-val-t3">90.8 kW (26.3%)</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg mt-4">
+            <div class="font-mono text-[10px] text-slate-600 uppercase font-bold">Emergency Shed Savings</div>
+            <div class="text-xs text-slate-800 mt-0.5" id="shed-savings-text">
+              Shedding Tier 3 saves <span class="text-emerald-700 font-bold">90.8 kW</span> and extends BESS runtime by <span class="text-emerald-700 font-bold">+7.1 hours</span>.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- CLIENT-SIDE SIMULATION LOGIC -->
+<script>
+  let isOutageActive = false;
+  let currentWeather = 'sunny';
+  let currentSoC = 88.5;
+  const totalBessKWh = 1600;
+
+  let gensetMode = 'AUTO';
+  let gensetRunning = false;
+  let gensetKW = 0;
+  let isCranking = false;
+
+  const baseT1 = 112.5;
+  const baseT2 = 142.5;
+  const baseT3 = 90.8;
+
+  const API_BASE = (() => {
+    const { protocol, hostname, port, origin } = window.location;
+    if (protocol === 'file:' || !hostname) return 'http://127.0.0.1:5000';
+    const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
+    if (isLocalHost && port !== '5000') return `${protocol}//${hostname}:5000`;
+    return origin;
+  })();
+  let socUpdateTimer;
+  let telemetryStreamErrorLogged = false;
+
+  const weatherProfiles = {
+    sunny: { solarKW: 482.4, irradiance: '980 W/m²', efficiency: 1.0, label: 'Optimal Generation', trend: '+12.8%' },
+    cloudy: { solarKW: 204.2, irradiance: '415 W/m²', efficiency: 0.42, label: 'Partial Cloud Cover', trend: '-57.6%' },
+    stormy: { solarKW: 58.1, irradiance: '110 W/m²', efficiency: 0.12, label: 'Storm Severe Overcast', trend: '-88.0%' }
+  };
+
+  function appendLog(message, type = 'normal') {
+    const terminal = document.getElementById('log-terminal');
+    if (!terminal) return;
+    const now = new Date();
+    const timeStr = now.toISOString().substring(11, 19) + ' UTC';
+    const entry = document.createElement('div');
+    if (type === 'alert') {
+      entry.className = 'text-rose-400 font-bold';
+      entry.innerHTML = `<span class="text-sky-400">[${timeStr}]</span> [CRITICAL ALARM] ${message}`;
+    } else if (type === 'warn') {
+      entry.className = 'text-amber-400 font-bold';
+      entry.innerHTML = `<span class="text-sky-400">[${timeStr}]</span> [CONTINGENCY] ${message}`;
+    } else if (type === 'success') {
+      entry.className = 'text-emerald-400 font-bold';
+      entry.innerHTML = `<span class="text-sky-400">[${timeStr}]</span> [RESTORE] ${message}`;
+    } else {
+      entry.className = 'text-slate-300';
+      entry.innerHTML = `<span class="text-sky-400">[${timeStr}]</span> ${message}`;
+    }
+    terminal.appendChild(entry);
+    terminal.scrollTop = terminal.scrollHeight;
+  }
+
+  async function apiRequest(path, body) {
+    const response = await fetch(`${API_BASE}${path}`, {
+      method: body === undefined ? 'GET' : 'POST',
+      headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body)
+    });
+    const result = await response.json();
+    if (!response.ok || result.status !== 'success') {
+      throw new Error(result.error || `Request failed (${response.status})`);
+    }
+    return result;
+  }
+
+  function applyBackendState(state) {
+    if (!state || !state.bess || !state.genset) {
+      throw new Error('Backend returned an incomplete telemetry snapshot.');
+    }
+    isOutageActive = state.isOutageActive;
+    currentWeather = state.currentWeather;
+    currentSoC = state.bess.soc;
+    gensetMode = state.genset.mode;
+    gensetRunning = state.genset.status === 'RUNNING (MANUAL)';
+
+    document.querySelectorAll('.weather-btn').forEach(btn => {
+      const active = btn.id === `btn-weather-${currentWeather}`;
+      btn.className = active
+        ? 'weather-btn active flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white text-emerald-800 border border-slate-200 shadow-xs'
+        : 'weather-btn flex items-center gap-1.5 px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900 transition-colors';
+    });
+    document.getElementById('btn-mode-text').innerText = `Mode: ${gensetMode}`;
+    document.getElementById('btn-emergency-text').innerText = gensetRunning ? 'Stop Generator' : 'Emergency Run';
+    document.getElementById('soc-slider').value = currentSoC;
+    recalculateSystem();
+  }
+
+  async function performAction(path, body, failureLabel) {
+    try {
+      const result = await apiRequest(path, body);
+      applyBackendState(result.data);
+      return result;
+    } catch (error) {
+      appendLog(`${failureLabel}: ${error.message}`, 'alert');
+      return null;
+    }
+  }
+
+  function connectTelemetryStream() {
+    const stream = new EventSource(`${API_BASE}/api/stream`);
+    stream.onopen = () => {
+      telemetryStreamErrorLogged = false;
+    };
+    stream.onmessage = event => {
+      try {
+        applyBackendState(JSON.parse(event.data));
+      } catch (error) {
+        appendLog(`Telemetry stream data error: ${error.message}`, 'alert');
+      }
+    };
+    stream.onerror = () => {
+      if (!telemetryStreamErrorLogged) {
+        appendLog('Telemetry stream disconnected; reconnecting automatically.', 'warn');
+        telemetryStreamErrorLogged = true;
+      }
+    };
+  }
+
+  function selectDuration(btn) {
+    document.querySelectorAll('.duration-btn').forEach(b => {
+      b.className = 'duration-btn px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600 hover:text-slate-900 font-mono text-xs font-medium';
+    });
+    btn.className = 'duration-btn px-2 py-0.5 rounded bg-emerald-600 text-white font-mono text-xs font-bold shadow-xs';
+    appendLog(`Drill duration preset set to ${btn.innerText.trim()}. Interlock policies verified.`, 'normal');
+  }
+
+  async function executeManualDrill() {
+    appendLog('INITIATING MANUAL RESILIENCE DRILL: IEEE 1547.4 black-start & sub-cycle trip test sequence engaging.', 'warn');
+    const selected = document.querySelector('.duration-btn.bg-emerald-600');
+    const result = await performAction('/api/drill/execute', { duration: selected ? selected.innerText.trim() : '30m' }, 'Drill request failed');
+    if (!result) return;
+    setTimeout(() => {
+      appendLog('Drill automated sequence completed successfully. All critical life-safety metrics maintained.', 'success');
+    }, 4500);
+  }
+
+  async function testCrankGenset() {
+    if (isCranking || gensetRunning) return;
+    const result = await performAction('/api/genset/crank', {}, 'Genset crank request failed');
+    if (!result) return;
+    isCranking = true;
+    const crankText = document.getElementById('btn-crank-text');
+    crankText.innerText = 'Cranking (10s)...';
+    appendLog('Genset Unit GS-1 manual crank cycle initiated. Testing starter battery and fuel pressure...', 'warn');
+    const badge = document.getElementById('genset-status-badge');
+    const dot = document.getElementById('genset-status-dot');
+    const text = document.getElementById('genset-status-text');
+    badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 font-bold';
+    dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
+    text.innerText = 'CRANK TEST RUNNING';
+
+    setTimeout(() => {
+      isCranking = false;
+      crankText.innerText = 'Manual Test Crank (10s)';
+      appendLog('Genset Unit GS-1 crank test PASSED. Engine speed: 1800 RPM, oil pressure: 58 PSI. System back to STANDBY.', 'success');
+      recalculateSystem();
+    }, 10000);
+  }
+
+  async function toggleGensetMode() {
+    const mode = gensetMode === 'AUTO' ? 'MANUAL' : 'AUTO';
+    await performAction('/api/genset/mode', { mode }, 'Genset mode update failed');
+  }
+
+  async function toggleEmergencyRunGenset() {
+    await performAction('/api/genset/emergency', { running: !gensetRunning }, 'Emergency genset command failed');
+  }
+
+  function recalculateSystem() {
+    const weather = weatherProfiles[currentWeather];
+    const solarKW = weather.solarKW;
+
+    let activeT1 = baseT1;
+    let activeT2 = (isOutageActive && currentSoC < 35) ? 0 : baseT2;
+    let activeT3 = isOutageActive ? 0 : baseT3;
+    let totalDemand = activeT1 + activeT2 + activeT3;
+
+    let autoGensetEngaged = (isOutageActive && currentSoC < 35 && gensetMode === 'AUTO');
+    let effectiveGensetActive = gensetRunning || autoGensetEngaged;
+
+    if (isCranking) {
+      gensetBadge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 font-bold';
+      gensetDot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
+      gensetText.innerText = 'CRANK TEST RUNNING';
+      gensetKWReadout.innerText = '0.0';
+      gensetLoadPct.innerText = 'Crank test in progress';
+    } else if (effectiveGensetActive) {
+      gensetKW = isOutageActive ? Math.min(totalDemand + 50, 500) : 250;
+    } else {
+      gensetKW = 0;
+    }
+
+    const gensetBadge = document.getElementById('genset-status-badge');
+    const gensetDot = document.getElementById('genset-status-dot');
+    const gensetText = document.getElementById('genset-status-text');
+    const gensetKWReadout = document.getElementById('genset-kw-readout');
+    const gensetLoadPct = document.getElementById('genset-load-pct');
+
+    if (effectiveGensetActive) {
+      gensetBadge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-800 font-bold';
+      gensetDot.className = 'w-2 h-2 rounded-full bg-rose-600 animate-ping';
+      gensetText.innerText = autoGensetEngaged ? 'AUTO-RUNNING (SoC < 35%)' : 'RUNNING (MANUAL)';
+      gensetKWReadout.innerText = gensetKW.toFixed(1);
+      gensetLoadPct.innerText = `${((gensetKW / 500) * 100).toFixed(0)}% Prime Output`;
+    } else if (gensetMode === 'OFF') {
+      gensetBadge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 font-bold';
+      gensetDot.className = 'w-2 h-2 rounded-full bg-slate-400';
+      gensetText.innerText = 'OFF-LINE';
+      gensetKWReadout.innerText = '0.0';
+      gensetLoadPct.innerText = '0% Prime Output';
+    } else {
+      gensetBadge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold';
+      gensetDot.className = 'w-2 h-2 rounded-full bg-emerald-600 animate-pulse';
+      gensetText.innerText = 'STANDBY (READY)';
+      gensetKWReadout.innerText = '0.0';
+      gensetLoadPct.innerText = '0% Prime Output';
+    }
+
+    let totalGen = solarKW + gensetKW;
+    let netBalance = totalGen - totalDemand;
+    let batteryKW = 0;
+    let gridKW = 0;
+
+    if (!isOutageActive) {
+      if (netBalance >= 0) {
+        batteryKW = Math.min(netBalance, 85.2);
+        gridKW = netBalance - batteryKW;
+      } else {
+        batteryKW = Math.max(netBalance, -150.0);
+        gridKW = netBalance - batteryKW;
+      }
+    } else {
+      gridKW = 0;
+      batteryKW = netBalance;
+    }
+
+    document.getElementById('kpi-solar-val').innerText = solarKW.toFixed(1);
+    document.getElementById('kpi-irradiance').innerText = weather.irradiance;
+    document.getElementById('node-solar-power').innerText = `${solarKW.toFixed(1)} kW`;
+    document.getElementById('sub-inv1').innerText = `${(solarKW * 0.502).toFixed(1)} kW`;
+    document.getElementById('sub-inv2').innerText = `${(solarKW * 0.498).toFixed(1)} kW`;
+
+    document.getElementById('kpi-demand-val').innerText = totalDemand.toFixed(1);
+    document.getElementById('node-load-power').innerText = `${totalDemand.toFixed(1)} kW`;
+
+    document.getElementById('kpi-battery-val').innerText = currentSoC.toFixed(1);
+    document.getElementById('soc-slider-val').innerText = `${currentSoC.toFixed(1)}%`;
+    const curKWh = (totalBessKWh * (currentSoC / 100)).toFixed(0);
+    document.getElementById('kpi-battery-kwh').innerText = curKWh;
+    document.getElementById('bess-progress-bar').style.width = `${Math.min(Math.max(currentSoC, 4), 100)}%`;
+
+    const bessStatusEl = document.getElementById('kpi-battery-status');
+    const nodeBessPowerEl = document.getElementById('node-bess-power');
+    if (batteryKW >= 0) {
+      bessStatusEl.innerText = `CHARGING +${batteryKW.toFixed(1)}kW`;
+      bessStatusEl.className = 'px-2 py-0.5 rounded-full font-mono text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold';
+      nodeBessPowerEl.innerText = `Charging: +${batteryKW.toFixed(1)} kW`;
+      nodeBessPowerEl.className = 'text-emerald-700 font-bold';
+      document.getElementById('bess-progress-bar').className = 'h-full bg-emerald-500 transition-all duration-500 rounded-full';
+    } else {
+      bessStatusEl.innerText = `DISCHARGING ${batteryKW.toFixed(1)}kW`;
+      bessStatusEl.className = 'px-2 py-0.5 rounded-full font-mono text-[10px] bg-amber-50 text-amber-800 border border-amber-200 font-bold';
+      nodeBessPowerEl.innerText = `Discharging: ${batteryKW.toFixed(1)} kW`;
+      nodeBessPowerEl.className = 'text-amber-700 font-bold';
+      document.getElementById('bess-progress-bar').className = 'h-full bg-amber-500 transition-all duration-500 rounded-full';
+    }
+
+    const gridStateEl = document.getElementById('kpi-grid-state');
+    const gridBeaconEl = document.getElementById('kpi-grid-beacon');
+    const gridKwEl = document.getElementById('kpi-grid-kw');
+    const nodeGridPill = document.getElementById('node-grid-pill');
+    const nodeGridPower = document.getElementById('node-grid-power');
+    const pathGrid = document.getElementById('path-grid');
+    const headerGridBadge = document.getElementById('header-grid-badge');
+    const headerGridDot = document.getElementById('header-grid-dot');
+    const headerGridText = document.getElementById('header-grid-text');
+    const sidebarIslandState = document.getElementById('sidebar-island-state');
+
+    if (!isOutageActive) {
+      gridStateEl.innerText = 'CONNECTED';
+      gridStateEl.className = 'font-mono text-3xl font-bold text-emerald-700 tracking-tight';
+      gridBeaconEl.className = 'flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold';
+      gridBeaconEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span><span>ONLINE</span>';
+
+      if (gridKW >= 0) {
+        gridKwEl.innerText = `Export ${gridKW.toFixed(1)} kW`;
+        nodeGridPower.innerText = `Net Export: ${gridKW.toFixed(1)} kW`;
+      } else {
+        gridKwEl.innerText = `Import ${Math.abs(gridKW).toFixed(1)} kW`;
+        nodeGridPower.innerText = `Net Import: ${Math.abs(gridKW).toFixed(1)} kW`;
+      }
+
+      nodeGridPill.innerText = 'INTERTIED';
+      nodeGridPill.className = 'font-mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold';
+      pathGrid.setAttribute('stroke', '#0284c7');
+      pathGrid.setAttribute('stroke-dasharray', '6 6');
+      document.getElementById('feeder-breaker-state').innerText = 'CB-101 CLOSED';
+      document.getElementById('feeder-breaker-state').className = 'text-emerald-700 font-bold';
+
+      headerGridBadge.className = 'hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200';
+      headerGridDot.className = 'w-2 h-2 rounded-full bg-emerald-600 animate-pulse';
+      headerGridText.innerText = 'Grid Connected';
+      headerGridText.className = 'font-mono text-xs text-emerald-800 uppercase font-bold';
+      sidebarIslandState.innerText = 'STANDBY';
+      sidebarIslandState.className = 'font-mono text-[11px] text-emerald-700 font-bold';
+    } else {
+      gridStateEl.innerText = 'ISLANDED (EMERGENCY)';
+      gridStateEl.className = 'font-mono text-2xl font-bold text-rose-600 tracking-tight animate-pulse';
+      gridBeaconEl.className = 'flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200 font-bold';
+      gridBeaconEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping"></span><span>OUTAGE DETECTED</span>';
+      gridKwEl.innerText = 'Isolated (0.0 kW)';
+      nodeGridPower.innerText = 'Feeder 14-B: 0.0 kV (DEAD)';
+      nodeGridPill.innerText = 'DE-ENERGIZED';
+      nodeGridPill.className = 'font-mono text-[10px] px-1.5 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200 font-bold';
+      pathGrid.setAttribute('stroke', '#dc2626');
+      pathGrid.setAttribute('stroke-dasharray', '2 8');
+      document.getElementById('feeder-breaker-state').innerText = 'CB-101 TRIPPED OPEN';
+      document.getElementById('feeder-breaker-state').className = 'text-rose-600 font-bold';
+
+      headerGridBadge.className = 'hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200';
+      headerGridDot.className = 'w-2 h-2 rounded-full bg-rose-600 animate-ping';
+      headerGridText.innerText = 'ISLANDED (EMERGENCY)';
+      headerGridText.className = 'font-mono text-xs text-rose-800 uppercase font-bold';
+      sidebarIslandState.innerText = 'ACTIVE (ISLANDED)';
+      sidebarIslandState.className = 'font-mono text-[11px] text-rose-700 font-bold';
+    }
+
+    const tier2Card = document.getElementById('tier2-card');
+    const tier2Badge = document.getElementById('tier2-badge');
+    const tier2Kw = document.getElementById('tier2-kw');
+    const tier2Title = document.getElementById('tier2-status-title');
+    const tier2Breaker = document.getElementById('tier2-breaker');
+    const tier2SocEval = document.getElementById('tier2-soc-eval');
+    const t2Items = [document.getElementById('t2-item-1'), document.getElementById('t2-item-2'), document.getElementById('t2-item-3')];
+    const t2Kws = [document.getElementById('t2-kw-1'), document.getElementById('t2-kw-2'), document.getElementById('t2-kw-3')];
+    const t2Dots = [document.getElementById('t2-dot-1'), document.getElementById('t2-dot-2'), document.getElementById('t2-dot-3')];
+
+    if (isOutageActive && currentSoC < 35) {
+      tier2Card.className = 'p-5 bg-white border border-rose-200 rounded-xl shadow-xs flex flex-col justify-between relative overflow-hidden transition-all duration-300 border-t-4 border-t-rose-600 opacity-50';
+      tier2Badge.className = 'font-mono text-[10px] px-2 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200 font-bold uppercase animate-pulse';
+      tier2Badge.innerText = 'TIER 2 • DISCONNECTED (SoC < 35%)';
+      tier2Kw.innerText = '0.0 kW';
+      tier2Title.innerHTML = '<span class="material-symbols-outlined text-[16px] text-rose-600">warning</span><span class="text-rose-800 font-bold">DISCONNECTED – RESERVED STRICTLY FOR TIER 1</span>';
+      tier2Breaker.innerText = 'BREAKER CB-T2 TRIPPED OPEN';
+      tier2Breaker.className = 'text-rose-600 font-bold';
+      tier2SocEval.innerText = `SoC: ${currentSoC.toFixed(1)}% (DROPPED BELOW 35% THRESHOLD)`;
+      t2Items.forEach(el => el.classList.add('opacity-50', 'line-through'));
+      t2Kws.forEach(el => el.innerText = '0.0 kW');
+      t2Dots.forEach(el => el.className = 'w-2 h-2 rounded-full bg-rose-600');
+    } else {
+      tier2Card.className = 'p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between relative overflow-hidden transition-all duration-300 border-t-4 border-t-sky-600';
+      tier2Badge.className = 'font-mono text-[10px] px-2 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 font-bold uppercase';
+      tier2Badge.innerText = 'TIER 2 • COMMUNITY PRIORITY';
+      tier2Kw.innerText = '142.5 kW';
+      tier2Title.innerHTML = '<span class="material-symbols-outlined text-[16px] text-sky-600">water_drop</span><span>CONTINGENCY RULE: ACTIVE (BESS > 35%)</span>';
+      tier2Breaker.innerText = 'BREAKER CB-T2 CLOSED';
+      tier2Breaker.className = 'text-sky-700 font-bold';
+      tier2SocEval.innerText = `Current SoC: ${currentSoC.toFixed(1)}% (Safe > 35%)`;
+      t2Items.forEach(el => el.classList.remove('opacity-50', 'line-through'));
+      t2Kws[0].innerText = '58.0 kW';
+      t2Kws[1].innerText = '52.0 kW';
+      t2Kws[2].innerText = '32.5 kW';
+      t2Dots.forEach(el => el.className = 'w-2 h-2 rounded-full bg-sky-600');
+    }
+
+    const tier3Card = document.getElementById('tier3-card');
+    const tier3Badge = document.getElementById('tier3-badge');
+    const tier3Kw = document.getElementById('tier3-kw');
+    const tier3Callout = document.getElementById('tier3-callout');
+    const tier3StatusLabel = document.getElementById('tier3-status-label');
+    const tier3Breaker = document.getElementById('tier3-breaker');
+    const t3Items = [document.getElementById('t3-item-1'), document.getElementById('t3-item-2'), document.getElementById('t3-item-3'), document.getElementById('t3-item-4')];
+    const t3Kws = [document.getElementById('t3-kw-1'), document.getElementById('t3-kw-2'), document.getElementById('t3-kw-3'), document.getElementById('t3-kw-4')];
+    const t3Dots = [document.getElementById('t3-dot-1'), document.getElementById('t3-dot-2'), document.getElementById('t3-dot-3'), document.getElementById('t3-dot-4')];
+
+    if (isOutageActive) {
+      tier3Card.className = 'p-5 bg-white border border-rose-200 rounded-xl shadow-xs flex flex-col justify-between relative overflow-hidden transition-all duration-300 border-t-4 border-t-rose-600 opacity-40';
+      tier3Badge.className = 'font-mono text-[10px] px-2 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200 font-bold uppercase animate-pulse';
+      tier3Badge.innerText = 'TIER 3 • DISCONNECTED';
+      tier3Kw.innerText = '0.0 kW';
+      tier3Callout.className = 'p-3 bg-rose-50/80 rounded-lg mb-4 border border-rose-200';
+      tier3StatusLabel.innerText = 'DISCONNECTED – ZERO POWER SUPPLIED (0.0 kW)';
+      tier3StatusLabel.className = 'text-rose-800 font-bold tracking-wide';
+      tier3Breaker.innerText = 'BREAKER CB-T3 TRIPPED OPEN (ZERO POWER)';
+      tier3Breaker.className = 'text-rose-600 font-bold';
+      document.getElementById('kpi-tier3-subtext').innerText = 'Shedded: 90.8 kW Saved (0.0 kW)';
+      document.getElementById('kpi-shed-status').innerText = 'TIER 3 ZERO POWER (SHED)';
+      document.getElementById('kpi-shed-status').className = 'ml-auto font-mono text-xs text-rose-600 font-bold';
+
+      t3Items.forEach(el => el.classList.add('opacity-40', 'line-through'));
+      t3Kws.forEach(el => {
+        el.innerText = '0.0 kW';
+        el.className = 'font-mono text-xs text-rose-600 font-bold';
+      });
+      t3Dots.forEach(el => el.className = 'w-2 h-2 rounded-full bg-rose-600');
+    } else {
+      tier3Card.className = 'p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between relative overflow-hidden transition-all duration-300 border-t-4 border-t-slate-400';
+      tier3Badge.className = 'font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300 font-bold uppercase';
+      tier3Badge.innerText = 'TIER 3 • NON-CRITICAL';
+      tier3Kw.innerText = '90.8 kW';
+      tier3Callout.className = 'p-3 bg-slate-50 border border-slate-200 rounded-lg mb-4';
+      tier3StatusLabel.innerText = 'ENERGIZED (GRID CONNECTED)';
+      tier3StatusLabel.className = 'text-slate-800 font-bold';
+      tier3Breaker.innerText = 'BREAKER CB-T3 CLOSED';
+      tier3Breaker.className = 'text-slate-800 font-bold';
+      document.getElementById('kpi-tier3-subtext').innerText = 'Sheddable: 90.8 kW';
+      document.getElementById('kpi-shed-status').innerText = 'TIER 1/2/3 ON';
+      document.getElementById('kpi-shed-status').className = 'ml-auto font-mono text-xs text-slate-500 font-semibold';
+
+      t3Items.forEach(el => el.classList.remove('opacity-40', 'line-through'));
+      t3Kws[0].innerText = '18.2 kW';
+      t3Kws[1].innerText = '38.6 kW';
+      t3Kws[2].innerText = '24.0 kW';
+      t3Kws[3].innerText = '10.0 kW';
+      t3Kws.forEach(el => el.className = 'font-mono text-xs text-slate-700 font-bold');
+      t3Dots.forEach(el => el.className = 'w-2 h-2 rounded-full bg-slate-400');
+    }
+
+    const usableKWh = (currentSoC / 100) * totalBessKWh;
+    const rtT1 = (usableKWh / baseT1).toFixed(1);
+    const rtT1T2 = (usableKWh / (baseT1 + baseT2)).toFixed(1);
+    document.getElementById('rt-tier1').innerText = `${rtT1} hrs`;
+    document.getElementById('rt-tier2').innerText = `${rtT1T2} hrs`;
+
+    const aiText = document.getElementById('ai-dispatch-text');
+    if (isOutageActive) {
+      if (currentSoC < 35) {
+        aiText.innerHTML = `<span class="text-rose-700 font-bold">EMERGENCY PROTOCOL ENGAGED:</span> Microgrid islanded. Storage dropped below strict 35% threshold (${currentSoC.toFixed(1)}%). Tier 2 shed enacted. Tier 3 receiving 0.0 kW. Life-safety power reserved 100% for Tier 1 medical assets (${baseT1} kW). Generator Unit GS-1 auto-crank active (${gensetKW.toFixed(0)} kW). Tier 1 autonomy: <strong>${rtT1} hours</strong>.`;
+      } else {
+        aiText.innerHTML = `<span class="text-amber-800 font-bold">ISLANDED MICROGRID MODE:</span> Utility grid disconnected. Tier 3 shed immediately to 0.0 kW (saved 90.8 kW). Solar generation (${solarKW.toFixed(0)} kW) and BESS SoC (${currentSoC.toFixed(1)}% &gt; 35%) powering Tier 1 &amp; Tier 2 community shelters. Contingency floor armed at 35%.`;
+      }
+    } else {
+      aiText.innerText = `Solar irradiance at ${weather.irradiance}. System connected to utility grid with zero curtailment. Current microgrid generation satisfies ${( (solarKW / totalDemand) * 100 ).toFixed(0)}% of local load. Energy reserves optimal for severe weather readiness.`;
+    }
+
+    const suff = ((solarKW / (baseT1 + baseT2 + baseT3)) * 100).toFixed(1);
+    document.getElementById('metric-sufficiency').innerText = `${suff}%`;
+
+    const totalActiveDemand = Math.max(activeT1 + activeT2 + activeT3, 1);
+    const p1 = ((activeT1 / totalActiveDemand) * 100).toFixed(1);
+    const p2 = ((activeT2 / totalActiveDemand) * 100).toFixed(1);
+    const p3 = ((activeT3 / totalActiveDemand) * 100).toFixed(1);
+
+    document.getElementById('dist-bar-t1').style.width = `${p1}%`;
+    document.getElementById('dist-bar-t2').style.width = `${p2}%`;
+    document.getElementById('dist-bar-t3').style.width = `${p3}%`;
+
+    document.getElementById('dist-val-t1').innerText = `${activeT1.toFixed(1)} kW (${p1}%)`;
+    document.getElementById('dist-val-t2').innerText = `${activeT2.toFixed(1)} kW (${p2}%)`;
+    document.getElementById('dist-val-t3').innerText = `${activeT3.toFixed(1)} kW (${p3}%)`;
+  }
+
+  async function simulateOutage() {
+    await performAction('/api/outage/simulate', {}, 'Outage simulation failed');
+  }
+
+  async function restoreGrid() {
+    await performAction('/api/outage/restore', {}, 'Grid restore failed');
+  }
+
+  async function resetSimulation() {
+    await performAction('/api/reset', {}, 'Simulation reset failed');
+  }
+
+  async function setWeather(type) {
+    await performAction('/api/weather', { weather: type }, 'Weather update failed');
+  }
+
+  async function setSoC(val) {
+    await performAction('/api/bess/soc', { soc: parseFloat(val) }, 'BESS SoC update failed');
+  }
+
+  function onSliderChange(val) {
+    currentSoC = parseFloat(val);
+    recalculateSystem();
+    clearTimeout(socUpdateTimer);
+    socUpdateTimer = setTimeout(() => setSoC(val), 200);
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    recalculateSystem();
+    apiRequest('/api/status')
+      .then(result => applyBackendState(result.data))
+      .catch(error => appendLog(`Backend status unavailable: ${error.message}`, 'alert'));
+    connectTelemetryStream();
+  });
+</script>
+</body>
+</html>
